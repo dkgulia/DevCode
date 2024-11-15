@@ -39,7 +39,7 @@ const HomePage = () => {
           <h1 className="text-5xl font-bold tracking-tight text-black mb-6">Master Machine Coding Interviews</h1>
           <p className="text-xl text-gray-600 mb-8">Practice real-world frontend challenges. Build real applications. Land your dream job.</p>
           <div className="flex justify-center space-x-4">
-            <Button className="bg-black text-white hover:bg-gray-800 px-8 py-6 text-lg">
+            <Button  className="bg-black text-white hover:bg-gray-800 px-8 py-6 text-lg">
               Start Practicing
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
