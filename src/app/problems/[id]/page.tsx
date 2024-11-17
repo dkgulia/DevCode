@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { useParams,useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { problems } from "../../../constants/problems";
 import CodeEditor from "../../../components/problems/CodeEditor";
 import {
@@ -13,7 +13,6 @@ import {
   Play,
 } from "lucide-react";
 
-// Types remain the same
 type Difficulty = "Easy" | "Medium" | "Hard";
 type ProblemStatus = "Solved" | "Attempted" | "Todo";
 
@@ -42,11 +41,16 @@ const difficultyColors: Record<Difficulty, string> = {
   Hard: "bg-red-100 text-red-800",
 };
 
-
 export default function ProblemPage() {
   const router = useRouter();
   const { id } = useParams();
   const problem = problems.find((problem: Problem) => problem.id === id);
+  
+  // Add state for code and output
+  const [code, setCode] = useState("");
+  const [output, setOutput] = useState("");
+  const [isCompiling, setIsCompiling] = useState(false);
+  const [error, setError] = useState("");
 
   const problemState: ProblemState = {
     status: "Attempted",
@@ -56,6 +60,58 @@ export default function ProblemPage() {
     lastSubmitted: "2 hours ago",
   };
 
+  const handleCodeChange = (newCode: string) => {
+    setCode(newCode);
+  };
+
+  const handleCodeCompile = async () => {
+    setIsCompiling(true);
+    setError("");
+    setOutput("");
+  
+    try {
+      // Create a safe execution environment
+      const sandbox = `
+        try {
+          ${code}
+          // Add any test cases or function calls here
+        } catch (error) {
+          console.error('Runtime Error:', error.message);
+        }
+      `;
+  
+      // Use Function constructor to create an isolated scope
+      const compiledFunction = new Function(sandbox);
+      
+      // Capture console output
+      const originalConsole = console.log;
+      let output = "";
+      
+      console.log = (...args) => {
+        output += args.join(" ") + "\n";
+      };
+  
+      // Execute the code
+      compiledFunction();
+      
+      // Restore console
+      console.log = originalConsole;
+  
+      // Update output state
+      setOutput(output || "No output generated");
+      
+    } catch (err: unknown) {
+      // Type guard to check if err is an Error object
+      if (err instanceof Error) {
+        setError(`Compilation Error: ${err.message}`);
+      } else {
+        // Fallback for cases where err is not an Error object
+        setError('An unknown error occurred during compilation');
+      }
+    } finally {
+      setIsCompiling(false);
+    }
+  };
   if (!problem) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -73,12 +129,9 @@ export default function ProblemPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-  
       {/* Problem Header */}
       <header className="bg-white border-b">
-    
-
-        <div className="container mx-auto px-6 ">
+        <div className="container mx-auto px-6">
           <div className="py-4 bg-white">
             {/* Title and Difficulty Row */}
             <div className="bg-white flex items-center justify-between mb-4">
@@ -101,9 +154,13 @@ export default function ProblemPage() {
                   <Code2 className="w-4 h-4" />
                   Solutions
                 </button>
-                <button className="px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-md flex items-center gap-2">
+                <button 
+                  onClick={handleCodeCompile}
+                  disabled={isCompiling}
+                  className="px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-md flex items-center gap-2 disabled:opacity-50"
+                >
                   <Play className="w-4 h-4" />
-                  Run Code
+                  {isCompiling ? "Running..." : "Run Code"}
                 </button>
               </div>
             </div>
@@ -140,7 +197,7 @@ export default function ProblemPage() {
         {/* Left Side - Code Editor */}
         <div className="bg-white rounded-lg shadow-sm">
           <div className="h-full p-4">
-            <CodeEditor />
+            <CodeEditor onCodeCompile={handleCodeChange} />
           </div>
         </div>
 
@@ -156,26 +213,24 @@ export default function ProblemPage() {
               <code>{problem.example}</code>
             </pre>
 
-            {problem.timeComplexity && (
-              <div className="mt-4">
-                <h3 className="text-lg font-semibold">Time Complexity</h3>
-                <p className="text-gray-700">{problem.timeComplexity}</p>
-              </div>
-            )}
+            
 
-            {problem.spaceComplexity && (
-              <div className="mt-4">
-                <h3 className="text-lg font-semibold">Space Complexity</h3>
-                <p className="text-gray-700">{problem.spaceComplexity}</p>
-              </div>
-            )}
+    
           </div>
 
           {/* Compiler Output */}
           <div>
             <h3 className="text-lg font-semibold mb-2">Output</h3>
-            <div className="bg-gray-100 p-4 rounded-lg min-h-[100px]">
-              <p className="text-gray-600">Output will be shown here...</p>
+            <div className="bg-gray-800 p-4 rounded-lg min-h-[100px] font-mono text-sm">
+              {error ? (
+                <span className="text-red-400">{error}</span>
+              ) : isCompiling ? (
+                <span className="text-yellow-400">Compiling...</span>
+              ) : output ? (
+                <pre className="text-green-400 whitespace-pre-wrap">{output}</pre>
+              ) : (
+                <span className="text-gray-400">Run your code to see the output here</span>
+              )}
             </div>
           </div>
         </div>
