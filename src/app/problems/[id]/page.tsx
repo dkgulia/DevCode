@@ -2,65 +2,47 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { problems } from "../../../constants/problems";
-import CodeEditor from "../../../components/problems/CodeEditor";
 import { useAuth } from "@clerk/nextjs";
-
+import CodeEditor from "../../../components/problems/CodeEditor";
+import { problems } from "../../../constants/problems";
 
 const difficultyColors = {
   Easy: "bg-green-100 text-green-800",
   Medium: "bg-yellow-100 text-yellow-800",
   Hard: "bg-red-100 text-red-800",
-};
+} as const;
 
-export default function ProblemPage() {
+type Difficulty = keyof typeof difficultyColors;
+
+interface Problem {
+  id: string;
+  title: string;
+  difficulty: Difficulty;
+  // Add other problem properties as needed
+}
+
+const ProblemPage: React.FC = () => {
   const { isLoaded, isSignedIn } = useAuth();
   const router = useRouter();
   const { id } = useParams() as { id: string };
-  const problem = problems.find((p) => p.id === id);
-
-  const [code, setCode] = useState("");
-  const [output, setOutput] = useState("");
-  const [isCompiling, setIsCompiling] = useState(false);
-  const [error, setError] = useState("");
+  const problem = problems.find((p) => p.id === id) as Problem | undefined;
+  
+  const [output, setOutput] = useState<string>("");
+  const [isCompiling, setIsCompiling] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
-      router.push('/sign-in'); // Update this line
+      router.push('/sign-in');
     }
   }, [isLoaded, isSignedIn, router]);
 
-  const handleCodeChange = (newCode: string) => {
-    setCode(newCode);
-  };
-
-  const handleCodeCompile = async () => {
-    setIsCompiling(true);
-    setError("");
-    setOutput("");
-
+  const handleCodeCompile = (compiledCode: string) => {
     try {
-      const sandbox = `
-        try {
-          ${code}
-        } catch (error) {
-          console.error('Runtime Error:', error.message);
-        }
-      `;
-
-      const compiledFunction = new Function(sandbox);
-      const originalConsole = console.log;
-      let output = "";
-
-      console.log = (...args) => {
-        output += args.join(" ") + "\n";
-      };
-
-      compiledFunction();
-
-      console.log = originalConsole;
-      setOutput(output || "No output generated");
-    } catch (err: unknown) {
+      setIsCompiling(true);
+      setError("");
+      setOutput(compiledCode);
+    } catch (err) {
       if (err instanceof Error) {
         setError(`Compilation Error: ${err.message}`);
       } else {
@@ -96,6 +78,7 @@ export default function ProblemPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
+      {/* Header */}
       <header className="bg-white border-b">
         <div className="container mx-auto px-6">
           <div className="py-4 flex items-center justify-between">
@@ -111,25 +94,34 @@ export default function ProblemPage() {
         </div>
       </header>
 
+      {/* Main Content */}
       <div className="flex-1 grid grid-cols-2 gap-6 p-6">
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <CodeEditor onCodeCompile={handleCodeChange} />
+        {/* Editor Section */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden p-4">
+          <CodeEditor onCodeCompile={handleCodeCompile} />
         </div>
-        <div className="bg-black text-white rounded-lg shadow-sm p-6">
-          <h3 className="text-lg font-semibold">Output</h3>
-          <div className="bg-gray-800 p-4 rounded-lg min-h-[100px] font-mono text-sm">
+
+        {/* Output Preview */}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="p-2 bg-gray-100 border-b">
+            <h3 className="text-sm font-medium text-gray-700">Preview</h3>
+          </div>
+          <div className="h-[calc(100%-40px)]">
             {error ? (
-              <span className="text-red-400">{error}</span>
-            ) : isCompiling ? (
-              <span className="text-yellow-400">Compiling...</span>
-            ) : output ? (
-              <pre className="text-green-400 whitespace-pre-wrap">{output}</pre>
+              <div className="p-4 text-red-600">{error}</div>
             ) : (
-              <span className="text-gray-400">Run your code to see the output here</span>
+              <iframe
+                srcDoc={output}
+                title="output"
+                className="w-full h-full border-none"
+                sandbox="allow-scripts allow-same-origin allow-modals"
+              />
             )}
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default ProblemPage;

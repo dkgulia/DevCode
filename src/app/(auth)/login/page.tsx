@@ -4,5 +4,9 @@
 import { SignIn } from '@clerk/nextjs';
 
 export default function LoginPage() {
-  return <SignIn />;
+  return (
+    <div className='bg-black flex items-center justify-center h-screen'>
+      <SignIn />;
+    </div>
+  )
 }
