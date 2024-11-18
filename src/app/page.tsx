@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Code2, Terminal, Timer, Users, Search, ArrowRight, Github } from 'lucide-react';
+              
+import { SignedIn,SignedOut,SignInButton, UserButton } from '@clerk/nextjs';
 
 const problems = [
   { title: "Build a File Explorer", difficulty: "Medium", tags: ["React", "Tree Data", "File System"], submissions: 1234 },
@@ -35,8 +37,17 @@ const HomePage = () => {
               <Link href="/problems" className="text-gray-700 hover:text-black">Problems</Link>
               <Link href="/leaderboard" className="text-gray-700 hover:text-black">Leaderboard</Link>
               <Link href="/discuss" className="text-gray-700 hover:text-black">Discuss</Link>
-              <Button variant="outline">Sign in</Button>
+              
               <Button onClick={handleClick} className="bg-black text-white hover:bg-gray-800">Get Started</Button>
+             
+              <SignedIn>
+              <UserButton/>
+              </SignedIn>
+
+              <SignedOut>
+              <SignInButton/>
+              </SignedOut>
+             
             </div>
           </div>
         </div>
