@@ -1,5 +1,8 @@
+
+"use client"
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,6 +15,12 @@ const problems = [
 ];
 
 const HomePage = () => {
+  const router = useRouter();
+  const handleClick = () => {
+    // Directly redirect to the /problems page
+    router.push('/problems');
+  };  
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar */}
@@ -27,7 +36,7 @@ const HomePage = () => {
               <Link href="/leaderboard" className="text-gray-700 hover:text-black">Leaderboard</Link>
               <Link href="/discuss" className="text-gray-700 hover:text-black">Discuss</Link>
               <Button variant="outline">Sign in</Button>
-              <Button className="bg-black text-white hover:bg-gray-800">Get Started</Button>
+              <Button onClick={handleClick} className="bg-black text-white hover:bg-gray-800">Get Started</Button>
             </div>
           </div>
         </div>
@@ -39,7 +48,7 @@ const HomePage = () => {
           <h1 className="text-5xl font-bold tracking-tight text-black mb-6">Master Machine Coding Interviews</h1>
           <p className="text-xl text-gray-600 mb-8">Practice real-world frontend challenges. Build real applications. Land your dream job.</p>
           <div className="flex justify-center space-x-4">
-            <Button  className="bg-black text-white hover:bg-gray-800 px-8 py-6 text-lg">
+            <Button  onClick={handleClick} className="bg-black text-white hover:bg-gray-800 px-8 py-6 text-lg">
               Start Practicing
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
