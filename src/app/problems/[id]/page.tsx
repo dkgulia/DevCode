@@ -79,10 +79,10 @@ const ProblemPage: React.FC = () => {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-6">
-          <div className="py-4 flex items-center justify-between">
-            <h1 className="text-xl font-bold">{problem.title}</h1>
+      <header className="border-b bg-white">
+        <div className="container ">
+          <div className=" text-black py-4 flex items-center justify-between">
+            <h1 className="text-xl text font-bold">{problem.title}</h1>
             <span
               className={`px-3 py-1 rounded-full text-sm font-medium ${
                 difficultyColors[problem.difficulty]
@@ -97,7 +97,7 @@ const ProblemPage: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 grid grid-cols-2 gap-6 p-6">
         {/* Editor Section */}
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden p-4">
+        <div className="bg-black rounded-lg shadow-sm overflow-hidden p-4">
           <CodeEditor onCodeCompile={handleCodeCompile} />
         </div>
 
