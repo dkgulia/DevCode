@@ -1,15 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Define interface for props
 interface CodeEditorProps {
   onCodeCompile: (code: string) => void;
-}
-
-// Define type for iframe element
-interface HTMLIFrameElement extends HTMLElement {
-  contentDocument: Document;
-  contentWindow: Window;
+  onCodeSubmit?: (code: string) => boolean;
 }
 
 const DEFAULT_HTML = `<!DOCTYPE html>
@@ -21,68 +15,61 @@ const DEFAULT_HTML = `<!DOCTYPE html>
 </head>
 <body>
     <!-- Write your HTML here -->
-    
 </body>
 </html>`;
 
-const CodeEditor: React.FC<CodeEditorProps> = ({ onCodeCompile }) => {
+const CodeEditor: React.FC<CodeEditorProps> = ({ 
+  onCodeCompile, 
+  onCodeSubmit 
+}) => {
   const [html, setHtml] = useState<string>(DEFAULT_HTML);
   const [css, setCss] = useState<string>('');
   const [js, setJs] = useState<string>('');
   const [compiledCode, setCompiledCode] = useState<string>('');
 
-  // Compile code whenever HTML, CSS, or JS changes
   useEffect(() => {
     compileCode();
   }, [html, css, js]);
 
+  
   const compileCode = () => {
-    // Extract body content from HTML
     const bodyContent = html.match(/<body[^>]*>([\s\S]*)<\/body>/i)?.[1] || html;
-    
-    // Extract head content if it exists
     const headContent = html.match(/<head[^>]*>([\s\S]*)<\/head>/i)?.[1] || '';
-    
-    // Create the compiled HTML with injected CSS and JS
+  
     const compiled = `
       <!DOCTYPE html>
       <html lang="en">
       <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Code Output</title>
-          ${headContent}
-          <style>
-              ${css}
-          </style>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Code Output</title>
+        ${headContent}
+        <style>
+          ${css}
+        </style>
       </head>
       <body>
-          ${bodyContent}
-          <script>
-              ${js}
-          </script>
+        ${bodyContent}
+        <script>
+          ${js}
+        </script>
       </body>
       </html>
     `;
-    
+  
     setCompiledCode(compiled);
-    
-    // Send compiled code to parent component if callback exists
+  
     if (onCodeCompile) {
       onCodeCompile(compiled);
     }
   };
 
-  const handleHtmlChange = (newHtml: string) => {
-    setHtml(newHtml);
-  };
-
-  const handleCssChange = (newCss: string) => {
-    setCss(newCss);
-  };
-
-  const handleJsChange = (newJs: string) => {
-    setJs(newJs);
+  const handleSubmit = () => {
+    if (onCodeSubmit) {
+      const result = onCodeSubmit(compiledCode);
+      return result;
+    }
+    return false;
   };
 
   return (
@@ -99,7 +86,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onCodeCompile }) => {
             <textarea
               className="w-full h-full p-4 font-mono text-sm bg-gray-50 border-0 rounded-md focus:ring-1 focus:ring-blue-500 resize-none"
               value={html}
-              onChange={(e) => handleHtmlChange(e.target.value)}
+              onChange={(e) => setHtml(e.target.value)}
               spellCheck="false"
             />
           </TabsContent>
@@ -109,7 +96,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onCodeCompile }) => {
               className="w-full h-full p-4 font-mono text-sm bg-gray-50 border-0 rounded-md focus:ring-1 focus:ring-blue-500 resize-none"
               placeholder="/* Write your CSS here */\n\n"
               value={css}
-              onChange={(e) => handleCssChange(e.target.value)}
+              onChange={(e) => setCss(e.target.value)}
               spellCheck="false"
             />
           </TabsContent>
@@ -119,12 +106,23 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ onCodeCompile }) => {
               className="w-full h-full p-4 font-mono text-sm bg-gray-50 border-0 rounded-md focus:ring-1 focus:ring-blue-500 resize-none"
               placeholder="// Write your JavaScript here\n\n"
               value={js}
-              onChange={(e) => handleJsChange(e.target.value)}
+              onChange={(e) => setJs(e.target.value)}
               spellCheck="false"
             />
           </TabsContent>
         </div>
       </Tabs>
+
+      {onCodeSubmit && (
+        <div className="mt-4 flex justify-end space-x-2">
+          <button 
+            onClick={handleSubmit}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            Submit Solution
+          </button>
+        </div>
+      )}
     </div>
   );
 };

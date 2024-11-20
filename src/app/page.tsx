@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Code2, Terminal, Timer, Users, Search, ArrowRight, Github, Menu, X } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
-
+export const dynamic = 'force-dynamic'
 const problems = [
   { title: "Build a File Explorer", difficulty: "Medium", tags: ["React", "Tree Data", "File System"], submissions: 1234 },
   { title: "Create a Calendar App", difficulty: "Hard", tags: ["React", "Date Handling", "Events"], submissions: 982 },

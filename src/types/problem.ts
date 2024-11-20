@@ -7,4 +7,5 @@ export interface Problem {
   tags: string[];
   description: string;
   example: string;
+  solutionValidator?: (submittedCode: string) => boolean;
 }

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
+import { toast } from "sonner"; // Assuming you're using sonner for notifications
 import CodeEditor from "../../../components/problems/CodeEditor";
 import { problems } from "../../../constants/problems";
 
@@ -18,7 +19,9 @@ interface Problem {
   id: string;
   title: string;
   difficulty: Difficulty;
-  // Add other problem properties as needed
+  description: string;
+  testCases?: any[];
+  solutionValidator?: (submittedCode: string) => boolean;
 }
 
 const ProblemPage: React.FC = () => {
@@ -30,6 +33,7 @@ const ProblemPage: React.FC = () => {
   const [output, setOutput] = useState<string>("");
   const [isCompiling, setIsCompiling] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [userSolvedProblems, setUserSolvedProblems] = useState<string[]>([]);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -50,6 +54,35 @@ const ProblemPage: React.FC = () => {
       }
     } finally {
       setIsCompiling(false);
+    }
+  };
+
+  const handleCodeSubmit = (submittedCode: string) => {
+    if (!problem || !problem.solutionValidator) {
+      toast.error("No validation method for this problem");
+      return false;
+    }
+
+    try {
+      const isCorrect = problem.solutionValidator(submittedCode);
+
+      if (isCorrect) {
+        // Mark problem as solved for the user
+        const updatedSolvedProblems = [...userSolvedProblems, problem.id];
+        setUserSolvedProblems(updatedSolvedProblems);
+
+        // Save to backend/local storage
+        localStorage.setItem('solvedProblems', JSON.stringify(updatedSolvedProblems));
+
+        toast.success('Problem Solved Successfully!');
+        return true;
+      } else {
+        toast.error('Solution does not pass all test cases');
+        return false;
+      }
+    } catch (err) {
+      toast.error('Error validating solution');
+      return false;
     }
   };
 
@@ -78,11 +111,11 @@ const ProblemPage: React.FC = () => {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      {/* Header */}
       <header className="border-b bg-white">
-        <div className="container ">
-          <div className=" text-black py-4 flex items-center justify-between">
-            <h1 className="text-xl text font-bold">{problem.title}</h1>
+        <div className="container">
+          <div className="text-black flex items-center justify-between">
+            <h1 className="text-2xl text font-bold">{problem.title}</h1>
+            <h2 className="text-md">{problem.description}</h2>
             <span
               className={`px-3 py-1 rounded-full text-sm font-medium ${
                 difficultyColors[problem.difficulty]
@@ -94,14 +127,14 @@ const ProblemPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <div className="flex-1 grid grid-cols-2 gap-6 p-6">
-        {/* Editor Section */}
         <div className="bg-black rounded-lg shadow-sm overflow-hidden p-4">
-          <CodeEditor onCodeCompile={handleCodeCompile} />
+          <CodeEditor 
+            onCodeCompile={handleCodeCompile} 
+            onCodeSubmit={handleCodeSubmit}
+          />
         </div>
 
-        {/* Output Preview */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="p-2 bg-gray-100 border-b">
             <h3 className="text-sm font-medium text-gray-700">Preview</h3>
