@@ -9,3 +9,8 @@ export interface Problem {
   example: string;
   solutionValidator?: (submittedCode: string) => boolean;
 }
+
+export interface CodeValidationResponse {
+  isCorrect: boolean;
+  message: string;
+}

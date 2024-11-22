@@ -67,9 +67,13 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   const handleSubmit = () => {
     if (onCodeSubmit) {
       const result = onCodeSubmit(compiledCode);
+      console.log('Compiled Code:', compiledCode);
+
       return result;
+      
     }
     return false;
+    
   };
 
   return (
@@ -121,7 +125,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           >
             Submit Solution
           </button>
+          
         </div>
+        
       )}
     </div>
   );
